@@ -221,7 +221,7 @@ function dist(a, b) {
     );
 }
 
-exports.pointsShapeRectangle = function(cell) {
+exports.pointsOnRectangle = function(cell) {
     var len = cell.length;
     if(len !== 5) return false;
 
@@ -249,7 +249,7 @@ exports.pointsShapeRectangle = function(cell) {
     );
 };
 
-exports.pointsShapeEllipse = function(cell) {
+exports.pointsOnEllipse = function(cell) {
     var len = cell.length;
     if(len !== CIRCLE_SIDES + 1) return false;
 

@@ -17,6 +17,7 @@ var selectMode = dragHelpers.selectMode;
 var displayOutlines = require('../shapes/draw_newshape/display_outlines');
 var handleEllipse = require('../shapes/draw_newshape/helpers').handleEllipse;
 var newShapes = require('../shapes/draw_newshape/newshapes');
+var newSelections = require('../selections/draw_newselection/newselections');
 
 var Lib = require('../../lib');
 var polygon = require('../../lib/polygon');
@@ -84,20 +85,23 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
         filterPoly = filteredPolygon([[x0, y0]], constants.BENDPX);
     }
 
-    var outlines = zoomLayer.selectAll('path.select-outline-' + plotinfo.id).data(isDrawMode ? [0] : [1, 2]);
-    var drwStyle = fullLayout.newshape;
+    var outlines = zoomLayer.selectAll('path.select-outline-' + plotinfo.id).data([0]);
+    var newStyle = isDrawMode ?
+        fullLayout.newshape :
+        fullLayout.newselection;
 
     outlines.enter()
         .append('path')
-        .attr('class', function(d) { return 'select-outline select-outline-' + d + ' select-outline-' + plotinfo.id; })
-        .style(isDrawMode ? {
-            opacity: drwStyle.opacity / 2,
-            fill: isOpenMode ? undefined : drwStyle.fillcolor,
-            stroke: drwStyle.line.color,
-            'stroke-dasharray': dashStyle(drwStyle.line.dash, drwStyle.line.width),
-            'stroke-width': drwStyle.line.width + 'px'
-        } : {})
-        .attr('fill-rule', drwStyle.fillrule)
+        .attr('class', 'select-outline-' + plotinfo.id)
+        .style({
+            opacity: isDrawMode ? newStyle.opacity / 2 : 1,
+            fill: (isDrawMode && !isOpenMode) ? newStyle.fillcolor : 'none',
+            stroke: newStyle.line.color,
+            'stroke-dasharray': dashStyle(newStyle.line.dash, newStyle.line.width),
+            'stroke-width': newStyle.line.width + 'px',
+            'shape-rendering': 'crispEdges'
+        })
+        .attr('fill-rule', newStyle.fillrule)
         .classed('cursor-move', isDrawMode ? true : false)
         .attr('transform', transform)
         .attr('d', path0 + 'Z');
@@ -567,8 +571,6 @@ function multiTester(list) {
 }
 
 function coerceSelectionsCache(evt, gd, dragOptions) {
-    gd._fullLayout._drawing = false;
-
     var fullLayout = gd._fullLayout;
     var plotinfo = dragOptions.plotinfo;
     var dragmode = dragOptions.dragmode;
@@ -606,21 +608,38 @@ function clearSelectionsCache(dragOptions) {
         gd._fullLayout._deactivateShape(gd);
     }
 
-    if(drawMode(dragmode)) {
-        var fullLayout = gd._fullLayout;
-        var zoomLayer = fullLayout._zoomlayer;
+    if(gd._fullLayout._activeSelectionIndex >= 0) {
+        gd._fullLayout._deactivateSelection(gd);
+    }
 
+    var fullLayout = gd._fullLayout;
+    var zoomLayer = fullLayout._zoomlayer;
+
+    var isDrawMode = drawMode(dragmode);
+    var isSelectMode = selectMode(dragmode);
+
+    if(isDrawMode || isSelectMode) {
         var outlines = zoomLayer.selectAll('.select-outline-' + plotinfo.id);
-        if(outlines && gd._fullLayout._drawing) {
+        if(outlines && gd._fullLayout._outlining) {
             // add shape
-            var shapes = newShapes(outlines, dragOptions);
+            var shapes;
+            if(isDrawMode) shapes = newShapes(outlines, dragOptions);
             if(shapes) {
                 Registry.call('_guiRelayout', gd, {
                     shapes: shapes
                 });
             }
 
-            gd._fullLayout._drawing = false;
+            // add selection
+            var selections;
+            if(isSelectMode) selections = newSelections(outlines, dragOptions);
+            if(selections) {
+                Registry.call('_guiRelayout', gd, {
+                    selections: selections
+                });
+            }
+
+            gd._fullLayout._outlining = false;
         }
     }
 
@@ -860,21 +879,11 @@ function updateSelectedState(gd, searchTraces, eventData) {
 }
 
 function mergePolygons(list, poly, subtract) {
-    var res;
+    var fn = subtract ?
+        polybool.difference :
+        polybool.union;
 
-    if(subtract) {
-        res = polybool.difference({
-            regions: list,
-            inverted: false
-        }, {
-            regions: [poly],
-            inverted: false
-        });
-
-        return res.regions;
-    }
-
-    res = polybool.union({
+    var res = fn({
         regions: list,
         inverted: false
     }, {

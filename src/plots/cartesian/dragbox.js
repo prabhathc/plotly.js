@@ -26,9 +26,9 @@ var redrawReglTraces = require('../../plot_api/subroutines').redrawReglTraces;
 var Plots = require('../plots');
 
 var getFromId = require('./axis_ids').getFromId;
-var prepSelect = require('../../components/selections/select').prepSelect;
-var clearSelect = require('../../components/selections/select').clearSelect;
-var selectOnClick = require('../../components/selections/select').selectOnClick;
+var prepSelect = require('../../components/selections').prepSelect;
+var clearSelect = require('../../components/selections').clearSelect;
+var selectOnClick = require('../../components/selections').selectOnClick;
 var scaleZoom = require('./scale_zoom');
 
 var constants = require('./constants');

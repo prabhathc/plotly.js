@@ -58,7 +58,7 @@ function draw(gd) {
 }
 
 function shouldSkipEdits(gd) {
-    return !!gd._fullLayout._drawing;
+    return !!gd._fullLayout._outlining;
 }
 
 function couldHaveActiveShape(gd) {
@@ -73,7 +73,7 @@ function drawOne(gd, index) {
         .selectAll('.shapelayer [data-index="' + index + '"]')
         .remove();
 
-    var o = helpers.makeOptionsAndPlotinfo(gd, index);
+    var o = helpers.makeShapesOptionsAndPlotinfo(gd, index);
     var options = o.options;
     var plotinfo = o.plotinfo;
 

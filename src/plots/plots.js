@@ -1539,6 +1539,11 @@ plots.supplyLayoutGlobalDefaults = function(layoutIn, layoutOut, formatObj) {
         'supplyDrawNewShapeDefaults'
     )(layoutIn, layoutOut, coerce);
 
+    Registry.getComponentMethod(
+        'selections',
+        'supplyDrawNewSelectionDefaults'
+    )(layoutIn, layoutOut, coerce);
+
     coerce('meta');
 
     // do not include defaults in fullLayout when users do not set transition

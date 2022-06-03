@@ -32,7 +32,7 @@ module.exports = function newShapes(outlines, dragOptions) {
     var d = e.getAttribute('d');
 
     var gd = dragOptions.gd;
-    var drwStyle = gd._fullLayout.newshape;
+    var newStyle = gd._fullLayout.newshape;
 
     var plotinfo = dragOptions.plotinfo;
     var xaxis = plotinfo.xaxis;
@@ -80,18 +80,18 @@ module.exports = function newShapes(outlines, dragOptions) {
         xref: xPaper ? 'paper' : xaxis._id,
         yref: yPaper ? 'paper' : yaxis._id,
 
-        layer: drwStyle.layer,
-        opacity: drwStyle.opacity,
+        layer: newStyle.layer,
+        opacity: newStyle.opacity,
         line: {
-            color: drwStyle.line.color,
-            width: drwStyle.line.width,
-            dash: drwStyle.line.dash
+            color: newStyle.line.color,
+            width: newStyle.line.width,
+            dash: newStyle.line.dash
         }
     };
 
     if(!isOpenMode) {
-        newShape.fillcolor = drwStyle.fillcolor;
-        newShape.fillrule = drwStyle.fillrule;
+        newShape.fillcolor = newStyle.fillcolor;
+        newShape.fillrule = newStyle.fillrule;
     }
 
     var cell;
